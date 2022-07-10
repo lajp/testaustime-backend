@@ -39,6 +39,20 @@ Required headers:
 Authorization: Bearer <token>
 ```
 
+### DELETE /activity/delete
+
+Deletes an activity with the specified id
+
+Accepts:
+```
+ACTIVITYID
+```
+
+Required headers:
+```
+Authorization: Bearer <token>
+```
+
 ### GET /users/{username}/activity/data
 
 Get your coding activity data
@@ -59,6 +73,7 @@ Returns:
 ```
 [
     {
+        "id": int,
         "language": string,
         "hostname": string,
         "editor_name": string,
@@ -77,7 +92,7 @@ Authorization: Bearer <token>
 
 ### GET /users/@me
 
-Gets the data of the authenticating user
+Gets the profile of the authenticating user
 
 Returns:
 ```
@@ -94,9 +109,50 @@ Required headers:
 Authorization: Bearer <token>
 ```
 
-### POST /users/register
+### DELETE /users/@me
+
+Deletes the users
+
+**WARNING** This operation is final, there is no going back
+
+Accepts:
+```
+{
+    "username": string,
+    "password": string
+}
+```
+
+Required headers:
+```
+Content-Type: application/json
+```
+
+### GET /users/@me/leaderboards
+
+Gets the authenticating users leaderboards
+
+Required headers:
+```
+Authorization: Bearer <token>
+```
+
+Returns:
+```
+[
+    {
+        "name": string,
+        member_count: int,
+    },
+    ...
+]
+```
+
+### POST /auth/register
 
 Registers a new user and returns the users auth token
+
+The register endpoint has a special ratelimit which is by default configured to be 3 per day (this also includes unsuccesfull requests)
 
 Accepts:
 ```
@@ -113,10 +169,15 @@ Content-type: application/json
 
 Returns:
 ```
-<AUTHTOKEN>
+{
+    "auth_token": string,
+    "username": string,
+    "friend_code": string,
+    "registration_time": string
+}
 ```
 
-### POST /users/login
+### POST /auth/login
 
 Logins to a users account returning the auth token
 
@@ -135,10 +196,33 @@ Content-type: application/json
 
 Returns:
 ```
-<AUTHTOKEN>
+{
+    "id": int,
+    "auth_token": string,
+    "username": string,
+    "friend_code": string,
+    "registration_time": string
+}
 ```
 
-### POST /users/changepassword
+### POST /auth/changeusername
+
+Changes the users username
+
+Accepts:
+```
+{
+    "new": string
+}
+```
+
+Required headers:
+```
+Content-Type: application/json
+Authorization: Bearer <token>
+```
+
+### POST /auth/changepassword
 
 Changes the users password
 
@@ -156,7 +240,7 @@ Authorization: Bearer <token>
 Content-type: application/json
 ```
 
-### POST /users/regenerate
+### POST /auth/regenerate
 
 Regenerate users auth token
 
@@ -167,8 +251,11 @@ Authorization: Bearer <token>
 
 Returns:
 ```
-<NEWAUTHTOKEN>
+{
+    "token": string
+}
 ```
+
 
 ### POST /friends/add
 
@@ -187,6 +274,32 @@ Required headers:
 Authorization: Bearer <token>
 ```
 
+Returns:
+```
+{
+    "username": string,
+    "coding_time": {
+        "all_time": int,
+        "past_month": int,
+        "past_week": int
+    }
+}
+```
+
+### DELETE /friends/remove
+
+Remove a friend
+
+Accepts:
+```
+FRIENDS_USERNAME
+```
+
+Required headers:
+```
+Authorization: Bearer <token>
+```
+
 ### GET /friends/list
 
 Gets a list of the authenticating users friends
@@ -194,12 +307,17 @@ Gets a list of the authenticating users friends
 Returns:
 ```
 [
-    string,
+    {
+        "username": string,
+        "coding_time": {
+            "all_time": int,
+            "past_month": int,
+            "past_week": int
+        }
+    },
     ...
 ]
 ```
-
-The string specifies the friends username
 
 Required headers:
 ```
@@ -210,7 +328,6 @@ Authorization: Bearer <token>
 
 Regenerates the authenticating users friend code
 
-
 Required headers:
 ```
 Authorization: Bearer <token>
@@ -218,5 +335,25 @@ Authorization: Bearer <token>
 
 Returns:
 ```
-NEWFRIENDCODE
+{
+    "friend_code": string
+}
 ```
+
+### POST /leaderboards/create
+
+Creates a new leaderboard adding the authenticating user to it as an admin
+
+Required headers:
+```
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+Accepts:
+```
+{
+    "name": string
+}
+```
+
